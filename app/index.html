@@ -132,6 +132,16 @@
     .home-username { font-weight: 800; font-size: 0.88rem; color: rgba(255,255,255,0.88); }
     .home-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; border: 2px solid rgba(255,255,255,0.38); }
 
+    .comic-banner {
+      margin: 14px 16px 0;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+
+    .comic-banner img { display: block; width: 100%; height: auto; }
+
     .chats-list { flex: 1; overflow-y: auto; }
 
     .chat-item { display: flex; align-items: center; gap: 14px; padding: 13px 20px; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid var(--border); }
@@ -302,6 +312,9 @@
     <div id="setup-banner-home" style="display:none" class="setup-banner">
       <div class="setup-banner-text">⚡ Messages only sync on this phone until Firebase is set up!</div>
       <a class="setup-banner-link" href="#" id="setup-link">How?</a>
+    </div>
+    <div class="comic-banner">
+      <img src="comic.jpg" alt="The CubCall story">
     </div>
     <div class="chats-list" id="chats-list"></div>
     <button class="fab" id="new-chat-btn">+</button>
