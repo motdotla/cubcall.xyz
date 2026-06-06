@@ -528,6 +528,110 @@
     }
 
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ---- ADD FRIEND SHEET ---- */
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(45, 24, 0, 0.4);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .sheet-backdrop.open { opacity: 1; pointer-events: all; }
+
+    .sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border-radius: 28px 28px 0 0;
+      padding: 12px 24px 32px;
+      z-index: 51;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sheet.open { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 40px;
+      height: 5px;
+      background: rgba(0,0,0,0.12);
+      border-radius: 100px;
+      margin: 0 auto 22px;
+    }
+
+    .sheet-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .sheet-hint {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--orange);
+      margin-bottom: 22px;
+    }
+
+    .sheet-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+    }
+
+    .sheet-input {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 2.5px solid rgba(255, 107, 43, 0.2);
+      background: var(--cream);
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 20px;
+    }
+
+    .sheet-input:focus { border-color: var(--orange); background: var(--white); }
+    .sheet-input::placeholder { color: #C5A882; font-weight: 600; }
+
+    .sheet-emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 7px;
+      margin-bottom: 24px;
+    }
+
+    .btn-add-friend {
+      width: 100%;
+      padding: 16px;
+      background: var(--orange);
+      color: var(--white);
+      border: none;
+      border-radius: 100px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      box-shadow: 0 4px 18px rgba(255, 107, 43, 0.35);
+    }
+
+    .btn-add-friend:hover:not(:disabled) { background: var(--orange-light); transform: translateY(-1px); }
+    .btn-add-friend:active:not(:disabled) { transform: scale(0.98); }
+    .btn-add-friend:disabled { opacity: 0.38; cursor: default; }
   </style>
 </head>
 <body>
@@ -578,46 +682,25 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- ADD FRIEND SHEET -->
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+  <div class="sheet" id="add-friend-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Add a Friend</div>
+    <div class="sheet-hint">✦ Hand your phone to them!</div>
+    <div class="sheet-label">Their name</div>
+    <input class="sheet-input" id="friend-name-input" type="text" placeholder="friend's name..." maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="sheet-label">Pick their look</div>
+    <div class="sheet-emoji-grid" id="friend-emoji-grid"></div>
+    <button class="btn-add-friend" id="add-friend-btn" disabled>Add Friend ✦</button>
+  </div>
 </div>
 
 <script>
   const EMOJIS = ['😀','🐝','🦊','🐸','🌟','🎮','🎨','🎵','🍕','🌈','🐱','🦋','🎉','🚀','💫','🌸'];
 
-  const DEMO_CHATS = [
-    {
-      id: 'maya',
-      name: 'Maya',
-      emoji: '🐝',
-      unread: true,
-      messages: [
-        { from: 'them', text: 'omg did you see the new movie?? 🎬', time: '10:32 AM' },
-        { from: 'me',   text: 'YES it was so good!! 🤩', time: '10:33 AM' },
-        { from: 'them', text: 'wanna watch it again on Saturday??', time: '10:33 AM' },
-        { from: 'me',   text: '100%!! ask your mom first lol 😂', time: '10:34 AM' },
-        { from: 'them', text: 'she already said yes!! 🎉🎉', time: '10:35 AM' },
-      ]
-    },
-    {
-      id: 'leo',
-      name: 'Leo',
-      emoji: '🦊',
-      unread: false,
-      messages: [
-        { from: 'them', text: 'hey what\'s up', time: '9:15 AM' },
-        { from: 'me',   text: 'not much!! wbu', time: '9:20 AM' },
-      ]
-    },
-    {
-      id: 'zoe',
-      name: 'Zoe',
-      emoji: '🌸',
-      unread: false,
-      messages: [
-        { from: 'me',   text: 'see you at school tomorrow!', time: 'Yesterday' },
-        { from: 'them', text: 'yesss!! can\'t wait 😊', time: 'Yesterday' },
-      ]
-    }
-  ];
+  const DEMO_CHATS = [];
 
   // ---- STATE ----
   let user = null;
@@ -626,10 +709,15 @@
   let selectedEmoji = EMOJIS[0];
 
   function loadState() {
+    // clear old demo data from previous version
+    if (localStorage.getItem('cubcall_v') !== '2') {
+      localStorage.removeItem('cubcall_chats');
+      localStorage.setItem('cubcall_v', '2');
+    }
     const savedUser  = localStorage.getItem('cubcall_user');
     const savedChats = localStorage.getItem('cubcall_chats');
     user  = savedUser  ? JSON.parse(savedUser)  : null;
-    chats = savedChats ? JSON.parse(savedChats) : JSON.parse(JSON.stringify(DEMO_CHATS));
+    chats = savedChats ? JSON.parse(savedChats) : [];
   }
 
   function saveState() {
@@ -708,9 +796,9 @@
     if (!chats.length) {
       list.innerHTML = `
         <div class="empty">
-          <div class="empty-icon">💬</div>
-          <div class="empty-title">No chats yet!</div>
-          <div class="empty-sub">Tap the + button to invite<br>a friend to CubCall.</div>
+          <div class="empty-icon">👯</div>
+          <div class="empty-title">No friends yet!</div>
+          <div class="empty-sub">Tap + and hand your phone<br>to a friend to add them.</div>
         </div>`;
       return;
     }
@@ -738,9 +826,63 @@
     });
   }
 
-  document.getElementById('new-chat-btn').addEventListener('click', () => {
-    showToast('Invite links coming soon! 🎉');
+  document.getElementById('new-chat-btn').addEventListener('click', openAddFriendSheet);
+
+  // ---- ADD FRIEND SHEET ----
+  let friendEmoji = EMOJIS[1];
+
+  const friendEmojiGrid = document.getElementById('friend-emoji-grid');
+  EMOJIS.forEach(e => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn' + (e === friendEmoji ? ' selected' : '');
+    btn.textContent = e;
+    btn.addEventListener('click', () => {
+      friendEmoji = e;
+      friendEmojiGrid.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+    friendEmojiGrid.appendChild(btn);
   });
+
+  const friendNameInput = document.getElementById('friend-name-input');
+  const addFriendBtn    = document.getElementById('add-friend-btn');
+  const sheet           = document.getElementById('add-friend-sheet');
+  const backdrop        = document.getElementById('sheet-backdrop');
+
+  friendNameInput.addEventListener('input', () => {
+    addFriendBtn.disabled = !friendNameInput.value.trim();
+  });
+
+  friendNameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doAddFriend();
+  });
+
+  addFriendBtn.addEventListener('click', doAddFriend);
+  backdrop.addEventListener('click', closeAddFriendSheet);
+
+  function openAddFriendSheet() {
+    friendNameInput.value = '';
+    addFriendBtn.disabled = true;
+    sheet.classList.add('open');
+    backdrop.classList.add('open');
+    setTimeout(() => friendNameInput.focus(), 350);
+  }
+
+  function closeAddFriendSheet() {
+    sheet.classList.remove('open');
+    backdrop.classList.remove('open');
+  }
+
+  function doAddFriend() {
+    const name = friendNameInput.value.trim();
+    if (!name) return;
+    const id = 'friend_' + Date.now();
+    chats.push({ id, name, emoji: friendEmoji, unread: false, messages: [] });
+    saveState();
+    closeAddFriendSheet();
+    renderChatList();
+    showToast(name + ' added! 🎉');
+  }
 
   // ---- CHAT ----
   function openChat(chatId) {
