@@ -66,6 +66,21 @@
       padding: 0 30px; justify-content: center; overflow-y: auto;
     }
 
+    .login-comic {
+      width: 100%;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+      margin-bottom: 28px;
+      margin-top: 24px;
+    }
+
+    .login-comic img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
     .login-logo { font-family: 'Fredoka', sans-serif; font-size: 2.6rem; font-weight: 700; color: var(--orange); text-align: center; margin-bottom: 6px; letter-spacing: -1px; }
     .login-tagline { text-align: center; color: var(--text-muted); font-weight: 700; font-size: 0.9rem; margin-bottom: 44px; text-transform: uppercase; letter-spacing: 1px; }
     .login-q { font-family: 'Fredoka', sans-serif; font-size: 1.55rem; font-weight: 600; color: var(--text); margin-bottom: 12px; }
@@ -262,6 +277,9 @@
 
   <!-- LOGIN -->
   <div class="screen" id="login-screen">
+    <div class="login-comic">
+      <img src="comic.jpg" alt="The CubCall comic — made by a kid, for kids!">
+    </div>
     <div class="login-logo">cubcall</div>
     <div class="login-tagline">messaging for kids</div>
     <div class="login-q">What do your friends call you?</div>
