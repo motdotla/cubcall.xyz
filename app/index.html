@@ -281,6 +281,20 @@
     .btn-outline:hover { background: rgba(255,107,43,0.08); }
     .btn-filled { flex: 1; padding: 14px; background: var(--orange); color: var(--white); border: none; border-radius: 100px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(255,107,43,0.35); transition: background 0.15s; }
     .btn-filled:hover { background: var(--orange-light); }
+
+    /* ---- DELETE POPUP ---- */
+    .delete-overlay { position: absolute; inset: 0; background: rgba(45,24,0,0.45); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .delete-overlay.show { opacity: 1; pointer-events: all; }
+    .delete-popup { background: var(--white); border-radius: 24px; padding: 28px 24px 20px; width: 82%; max-width: 300px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.22); transform: scale(0.9); transition: transform 0.2s; }
+    .delete-overlay.show .delete-popup { transform: scale(1); }
+    .delete-popup-emoji { font-size: 2.8rem; margin-bottom: 10px; }
+    .delete-popup-title { font-family: 'Fredoka', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .delete-popup-sub { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 22px; line-height: 1.5; }
+    .delete-popup-btns { display: flex; gap: 10px; }
+    .delete-cancel-btn { flex: 1; padding: 13px; background: var(--cream); color: var(--text-muted); border: none; border-radius: 100px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 800; cursor: pointer; transition: background 0.15s; }
+    .delete-cancel-btn:hover { background: #F0E8DA; }
+    .delete-confirm-btn { flex: 1; padding: 13px; background: #E63946; color: var(--white); border: none; border-radius: 100px; font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(230,57,70,0.35); transition: background 0.15s; }
+    .delete-confirm-btn:hover { background: #C9303C; }
   </style>
 </head>
 <body>
@@ -348,6 +362,19 @@
 
   <input type="file" id="photo-input" accept="image/*" style="display:none">
   <div class="toast" id="toast"></div>
+
+  <!-- DELETE FRIEND POPUP -->
+  <div class="delete-overlay" id="delete-overlay">
+    <div class="delete-popup">
+      <div class="delete-popup-emoji" id="delete-popup-emoji">🐝</div>
+      <div class="delete-popup-title" id="delete-popup-title">Remove friend?</div>
+      <div class="delete-popup-sub">This will erase <strong id="delete-popup-name"></strong> from your CubCall. You can add them back anytime!</div>
+      <div class="delete-popup-btns">
+        <button class="delete-cancel-btn" id="delete-cancel-btn">Keep</button>
+        <button class="delete-confirm-btn" id="delete-confirm-btn">Erase 🗑️</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ADD / JOIN SHEET -->
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
@@ -536,8 +563,68 @@
         </div>
       </div>`;
     }).join('');
-    list.querySelectorAll('.chat-item').forEach(el => el.addEventListener('click', () => openChat(el.dataset.id)));
+    list.querySelectorAll('.chat-item').forEach(el => {
+      let pressTimer = null;
+      let didLongPress = false;
+
+      el.addEventListener('touchstart', () => {
+        didLongPress = false;
+        pressTimer = setTimeout(() => {
+          didLongPress = true;
+          showDeletePopup(el.dataset.id);
+        }, 600);
+      }, { passive: true });
+
+      el.addEventListener('touchend', () => clearTimeout(pressTimer));
+      el.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+      el.addEventListener('click', () => {
+        if (!didLongPress) openChat(el.dataset.id);
+      });
+
+      // desktop: right-click to delete
+      el.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        showDeletePopup(el.dataset.id);
+      });
+    });
   }
+
+  // ---- DELETE FRIEND ----
+  let deleteChatId = null;
+
+  function showDeletePopup(chatId) {
+    const chat = chats.find(c => c.id === chatId);
+    if (!chat) return;
+    deleteChatId = chatId;
+    document.getElementById('delete-popup-emoji').textContent = chat.emoji;
+    document.getElementById('delete-popup-title').textContent = 'Remove ' + chat.name + '?';
+    document.getElementById('delete-popup-name').textContent = chat.name;
+    document.getElementById('delete-overlay').classList.add('show');
+  }
+
+  document.getElementById('delete-cancel-btn').addEventListener('click', () => {
+    document.getElementById('delete-overlay').classList.remove('show');
+    deleteChatId = null;
+  });
+
+  document.getElementById('delete-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('delete-overlay')) {
+      document.getElementById('delete-overlay').classList.remove('show');
+      deleteChatId = null;
+    }
+  });
+
+  document.getElementById('delete-confirm-btn').addEventListener('click', () => {
+    if (!deleteChatId) return;
+    const chat = chats.find(c => c.id === deleteChatId);
+    chats = chats.filter(c => c.id !== deleteChatId);
+    saveChats();
+    renderChatList();
+    document.getElementById('delete-overlay').classList.remove('show');
+    if (chat) showToast(chat.emoji + ' ' + chat.name + ' removed!');
+    deleteChatId = null;
+  });
 
   // ---- SHEET ----
   document.getElementById('new-chat-btn').addEventListener('click', openSheet);
